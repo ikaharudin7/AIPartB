@@ -1,4 +1,7 @@
 
+from referee.board import Board
+
+
 class Player:
     def __init__(self, player, n):
         """
@@ -10,6 +13,9 @@ class Player:
         as Blue.
         """
         # put your code here
+        self.colour = player
+
+
 
     def action(self):
         """

@@ -20,10 +20,11 @@ class Player:
         # put your code here
         self.colour = player
         self.moves = 0
+        self.board = []
+        self.n = n
         Board.n = n
-
-
-
+        
+        
 
 
     def action(self):
@@ -43,6 +44,10 @@ class Player:
         # Second move option
         elif self.moves == 1 and self.colour == "blue":
             return ("STEAL", )
+
+        
+
+
         
 
     def turn(self, player, action):
@@ -57,13 +62,22 @@ class Player:
         above. However, the referee has validated it at this point.
         """
         # put your code here
-        print(Board.is_occupied)
 
-        self.board = []
+        # Updates which elements are in the board at the moment. 
+        if (len(action) > 2):
+            # Use apply_captures to update the board
+            self.board.append((action[1], action[2], player))
+        else:
+            temp = self.board[0] 
+            self.board = [(temp[0], temp[1], player)]
+        print(self.board)
+
 
         # Keep track of board in array form like part A, with occupied tuples there, with the colour. 
 
         return action
+
+
 
 
 # A star algorithm

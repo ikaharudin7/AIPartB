@@ -1,7 +1,9 @@
 
 from cmath import inf
 from collections import defaultdict
-
+from hmac import digest
+from pickle import FALSE, TRUE
+from tkinter import N
 from numpy import ceil
 from referee.board import Board
 
@@ -22,7 +24,17 @@ class Player:
         self.moves = 0
         self.board = []
         self.n = n
-        Board.n = n
+        self.game = Board
+        
+
+        # Set the directions of the player.
+        if player == "red":
+            self.opp = "blue"
+            self.vertical = True
+        elif player == "blue": 
+            self.opp = "red"
+            self.vertical = False
+
         
         
 
@@ -37,18 +49,46 @@ class Player:
 
         # First move option
         if self.moves == 1 and self.colour == "red":
-            if Board.n % 2 == 0:
-                return ("PLACE", int(ceil(Board.n / 2)), int(ceil(Board.n / 2)))
+            if self.n % 2 == 0:
+                return ("PLACE", int(ceil(self.n / 2)), int(ceil(self.n / 2)))
             else: 
-                return ("PLACE", int(ceil(Board.n / 2 - 1)), int(ceil(Board.n / 2)))
+                return ("PLACE", int(ceil(self.n / 2 - 1)), int(ceil(self.n / 2)))
         # Second move option
         elif self.moves == 1 and self.colour == "blue":
             return ("STEAL", )
+        
+        # Use A-Star initially.
+        if self.vertical:
+            choose = aStar((self.n - 1, 1), (0, 2), self.n, self.board)
 
+        else:
+            choose = aStar((1, self.n - 1), (2, 0), self.n, self.board)
         
 
+        for tup in choose:
+            # Problem here as self.board has different format. 
+            if (tup[0], tup[1], "red") not in self.board and (tup[0], tup[1], "blue") not in self.board:
+                cs = tup
+                break
 
+        return ("PLACE", cs[0], cs[1])
+
+
+
+    # Evaluation function
+    def eval(self, board, ):
+        # OFFENCE - add values which fill up along the AStar path
+        # (Give more value to a state which has 2 more hexes to go compared to 4 more to win)
         
+
+        # DEFENCE - add greatest value to a block/capture if opp is 1 or 2 away from winning
+
+        # Find a different AStar Path/ Block
+         
+         
+        return
+
+
 
     def turn(self, player, action):
         """
@@ -61,21 +101,66 @@ class Player:
         the same as what your player returned from the action method
         above. However, the referee has validated it at this point.
         """
-        # put your code here
+        # put your code 
+        
+        
 
         # Updates which elements are in the board at the moment. 
         if (len(action) > 2):
             # Use apply_captures to update the board
+            remove = capture(self, self.board, (action[1], action[2], player))
+            for item in remove:
+                self.board.remove(item)
+
             self.board.append((action[1], action[2], player))
         else:
             temp = self.board[0] 
             self.board = [(temp[0], temp[1], player)]
+
         print(self.board)
 
-
         # Keep track of board in array form like part A, with occupied tuples there, with the colour. 
+        
 
         return action
+
+    
+
+
+# Detecting capture and returning captured elements - coord in (r, q, colour) format
+def capture(self, board, coord):
+    colour = self.colour
+    opp = self.opp
+    captured = []
+
+    # Check 6 possible options manually
+    r = coord[0]
+    q = coord[1]
+
+    # Vertically above and go clockwise
+    if (r+2, q-1, colour) in board and (r+1, q-1, opp) in board and (r+1, q, opp) in board:
+        captured.append((r+1, q-1, opp)) 
+        captured.append((r+1, q, opp))
+    if (r+1, q+1, colour) in board and (r+1, q, opp) in board and (r, q+1, opp) in board:
+        captured.append((r+1, q, opp))
+        captured.append((r, q+1, opp))
+    if (r-1, q+2, colour) in board and (r, q+1, opp) in board and (r-1, q+1, opp) in board:
+        captured.append((r, q+1, opp))
+        captured.append((r-1, q+1, opp))
+    if (r-2, q+1, colour) in board and (r-1, q, opp) in board and (r-1, q+1, opp) in board:
+        captured.append((r-1, q, opp))
+        captured.append((r-1, q+1, opp))
+    if (r-1, q-1, colour) in board and (r, q-1, opp) in board and (r-1, q, opp) in board:
+        captured.append((r, q-1, opp))
+        captured.append((r-1, q, opp))
+    if (r+1, q-2, colour) in board and (r, q-1, opp) in board and (r+1, q-1, opp) in board:
+        captured.append((r, q-1, opp))
+        captured.append((r+1, q-1, opp))
+    
+    return captured
+
+
+
 
 
 

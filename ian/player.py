@@ -77,11 +77,9 @@ class Player:
         if (len(action) > 2):
             # Use apply_captures to update the board
             remove = ian.capture(self, self.board, (action[1], action[2], player))
-            print(self.board)
             if len(remove) > 1:
                 
                 for item in remove:
-                    print(item)
                     self.board.remove(item)
                 
 
@@ -92,7 +90,7 @@ class Player:
             temp = self.board[0] 
             self.board = [(temp[1], temp[0], player)]
 
-
+        print(self.board)
         # Keep track of board in array form like part A, with occupied tuples there, with the colour. 
 
         return action

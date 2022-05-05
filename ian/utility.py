@@ -12,7 +12,6 @@ def evalfunc(n, board, vertical, colour):
     middle = int(n / 2)
     # Have a check if the end goals are taken or not
 
-
     if vertical:
         
         choose = aStar((n - 1, middle), (0, middle), n, board, colour)
@@ -20,7 +19,6 @@ def evalfunc(n, board, vertical, colour):
     else:
         choose = aStar((middle - 2, n - 1), (middle, 0), n, board, colour)
 
-    
 
     for tup in choose:
         # Problem here as self.board has different format. 
@@ -35,45 +33,67 @@ def evalfunc(n, board, vertical, colour):
 
     # Find a different AStar Path/ Block
 
+# Detects how close one colour is to winning
+def close_to_win(self):
+    
+    return
+
 
 
 # Detecting capture and returning captured elements - coord in (r, q, colour) format
 def capture(self, board, coord):
     colour = coord[2]
     opp = "red"
-    if coord[2] == "red":
-        opp == "blue"
-        
+    if colour == "red":
+        opp = "blue"
+
     captured = []
 
     # Check 6 possible options manually
     r = coord[0]
     q = coord[1]
-    i = 0
-    while i < 1:
-        # Vertically above and go clockwise
-        if (r+2, q-1, colour) in board and (r+1, q-1, opp) in board and (r+1, q, opp) in board:
-            captured.append((r+1, q-1, opp)) 
-            captured.append((r+1, q, opp))
-        if (r+1, q+1, colour) in board and (r+1, q, opp) in board and (r, q+1, opp) in board:
-            captured.append((r+1, q, opp))
-            captured.append((r, q+1, opp))
-        if (r-1, q+2, colour) in board and (r, q+1, opp) in board and (r-1, q+1, opp) in board:
-            captured.append((r, q+1, opp))
-            captured.append((r-1, q+1, opp))
-        if (r-2, q+1, colour) in board and (r-1, q, opp) in board and (r-1, q+1, opp) in board:
-            captured.append((r-1, q, opp))
-            captured.append((r-1, q+1, opp))
-        if (r-1, q-1, colour) in board and (r, q-1, opp) in board and (r-1, q, opp) in board:
-            captured.append((r, q-1, opp))
-            captured.append((r-1, q, opp))
-        if (r+1, q-2, colour) in board and (r, q-1, opp) in board and (r+1, q-1, opp) in board:
-            captured.append((r, q-1, opp))
-            captured.append((r+1, q-1, opp))
-        #colour = self.opp
-        #opp = self.colour
-        i += 1
 
+    # Check if it is on the upper and lower segments of diamond
+    if (r+2, q-1, colour) in board and (r+1, q-1, opp) in board and (r+1, q, opp) in board:
+        captured.append((r+1, q-1, opp)) 
+        captured.append((r+1, q, opp))
+    if (r+1, q+1, colour) in board and (r+1, q, opp) in board and (r, q+1, opp) in board:
+        captured.append((r+1, q, opp))
+        captured.append((r, q+1, opp))
+    if (r-1, q+2, colour) in board and (r, q+1, opp) in board and (r-1, q+1, opp) in board:
+        captured.append((r, q+1, opp))
+        captured.append((r-1, q+1, opp))
+    if (r-2, q+1, colour) in board and (r-1, q, opp) in board and (r-1, q+1, opp) in board:
+        captured.append((r-1, q, opp))
+        captured.append((r-1, q+1, opp))
+    if (r-1, q-1, colour) in board and (r, q-1, opp) in board and (r-1, q, opp) in board:
+        captured.append((r, q-1, opp))
+        captured.append((r-1, q, opp))
+    if (r+1, q-2, colour) in board and (r, q-1, opp) in board and (r+1, q-1, opp) in board:
+        captured.append((r, q-1, opp))
+        captured.append((r+1, q-1, opp))
+
+    # Check if inner two have been completed to capture upper segments 
+    if (r, q+1, colour) in board and (r+1, q, opp) in board and (r-1, q+1, opp) in board:
+        captured.append((r+1, q, opp)) 
+        captured.append((r-1, q+1, opp))
+    if (r-1, q+1, colour) in board and (r, q+1, opp) in board and (r-1, q, opp) in board:
+        captured.append((r, q+1, opp))
+        captured.append((r-1, q, opp))
+    if (r-1, q, colour) in board and (r, q-1, opp) in board and (r-1, q+1, opp) in board:
+        captured.append((r, q-1, opp))
+        captured.append((r-1, q+1, opp))
+    if (r, q-1, colour) in board and (r+1, q-1, opp) in board and (r-1, q, opp) in board:
+        captured.append((r+1, q-1, opp))
+        captured.append((r-1, q, opp))
+    if (r+1, q-1, colour) in board and (r, q-1, opp) in board and (r+1, q, opp) in board:
+        captured.append((r, q-1, opp))
+        captured.append((r+1, q, opp))
+    if (r+1, q, colour) in board and (r, q+1, opp) in board and (r+1, q-1, opp) in board:
+        captured.append((r, q+1, opp))
+        captured.append((r+1, q-1, opp))
+    print(colour, opp, coord[2])
+    print(captured)
     return captured
 
 

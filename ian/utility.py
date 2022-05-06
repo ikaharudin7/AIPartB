@@ -33,11 +33,65 @@ def evalfunc(n, board, vertical, colour):
 
     # Find a different AStar Path/ Block
 
-# Detects how close one colour is to winning
+# Detects how close a player is to winning
 def close_to_win(self):
-    
-    return
 
+    min_steps = inf
+    if (self.colour == "red"):
+        for i in range(self.n): 
+            # selects a starting position in first line
+            if (player_in_coord(self.board, (0, i), self.opp) != 1): 
+                start = (0, i)
+            # selects the end/goal position in final line
+            for j in range(self.n):
+                if (player_in_coord(self.board, (self.n - 1, j), self.opp) != 1):
+                    end = (self.n - 1, j) 
+                    # find the shortest path between the set points
+                    path = aStar(start, end, self.n, self.board, self.colour)
+                    # check that there is a path
+                    if (path != 0):
+                        path = path_without_player(self.board, path, self.colour)
+                        # update the minimum number of steps needed to get to win
+                        if (len(path) < min_steps):
+                            min_steps = len(path)
+
+    else: # this is a blue player
+        for i in range(self.n): 
+            if (player_in_coord(self.board, (i, 0), self.opp) != 1): 
+                start = (i, 0)
+            for j in range(self.n):
+                if (player_in_coord(self.board, (j, self.n - 1), self.opp) != 1):
+                    end = (j, self.n - 1) 
+                    path = aStar(start, end, self.n, self.board, self.colour)
+                    if (path != 0):
+                        path = path_without_player(self.board, path, self.colour)
+                        if (len(path) < min_steps):
+                            min_steps = len(path)
+
+
+    return min_steps
+
+
+# Returns a list of hexes in a given path, which does not contain player
+def path_without_player(board, path, player):
+    remaining_hexes = []
+    for coord in path:
+        if (player_in_coord(board, coord, player)):
+            continue
+        else:
+            remaining_hexes.append(hex)
+    
+    return remaining_hexes
+
+
+# Determines whether board contains a player located at given coordinate
+def player_in_coord(board, coord, player):
+    return_val = 0
+    for hex in board:
+        if (hex == (coord[0], coord[1], player)):
+            return_val = 1
+    
+    return return_val
 
 
 # Detecting capture and returning captured elements - coord in (r, q, colour) format
@@ -104,6 +158,7 @@ def capture(self, board, coord):
 
 # A star algorithm
 def aStar(start, goal, size, board, colour):
+
     # Keep track of which hexes have been blocked
     blocked = []
     for hex in board:

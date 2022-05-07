@@ -42,7 +42,7 @@ class Player:
         Called at the beginning of your turn. Based on the current state
         of the game, select an action to play.
         """
-        steps = ian.close_to_win(self)
+        steps = ian.close_to_win(self, self.colour)
         print("min steps is", steps)
 
         # put your code here
@@ -73,6 +73,8 @@ class Player:
         above. However, the referee has validated it at this point.
         """
         # put your code 
+
+        print(ian.evaluation(self))
 
         # Updates which elements are in the board at the moment. 
         if (len(action) > 2):

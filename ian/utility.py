@@ -33,11 +33,25 @@ def evalfunc(n, board, vertical, colour):
 
     # Find a different AStar Path/ Block
 
+def evaluation(self):
+    # Weightings for each type of board available. 
+    winning_weight = 5
+
+    curr_team = close_to_win(self, self.colour) * winning_weight
+    opp_team = close_to_win(self, self.opp) * winning_weight
+
+    return curr_team - opp_team
+
+
+
+
+
+
 # Detects how close a player is to winning
-def close_to_win(self):
+def close_to_win(self, colour):
 
     min_steps = inf
-    if (self.colour == "red"):
+    if (colour == "red"):
         for i in range(self.n): 
             # selects a starting position in first line
             if (player_in_coord(self.board, (0, i), self.opp) != 1): 
@@ -146,8 +160,8 @@ def capture(self, board, coord):
     if (r+1, q, colour) in board and (r, q+1, opp) in board and (r+1, q-1, opp) in board:
         captured.append((r, q+1, opp))
         captured.append((r+1, q-1, opp))
-    print(colour, opp, coord[2])
-    print(captured)
+    # print(colour, opp, coord[2])
+    # print(captured)
     return captured
 
 

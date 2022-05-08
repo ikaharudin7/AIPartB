@@ -22,7 +22,7 @@ class Player:
         self.moves = 0
         self.board = []
         self.n = n
-        self.game = Board
+        # self.game = Board 
         
 
         # Set the directions of the player.
@@ -42,7 +42,7 @@ class Player:
         Called at the beginning of your turn. Based on the current state
         of the game, select an action to play.
         """
-        steps = ian.close_to_win(self, self.colour)
+        steps = ian.close_to_win(self, self.colour)[2]
         print("min steps is", steps)
 
         # put your code here

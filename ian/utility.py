@@ -37,13 +37,38 @@ def evaluation(self):
     # Weightings for each type of board available. 
     winning_weight = 5
 
-    curr_team = close_to_win(self, self.colour) * winning_weight
-    opp_team = close_to_win(self, self.opp) * winning_weight
+    curr_team = close_to_win(self, self.colour)[2] * winning_weight
+    opp_team = close_to_win(self, self.opp)[2] * winning_weight
 
     return curr_team - opp_team
 
 
 
+# Returns 1 if the board state passes the cut-off test
+def cut_off_test(self, board, coord, ideal_route_to_win): 
+    result = 0
+
+    # check if the opponent can capture this piece in the next move
+    captures_next_move = capture(self, board, coord)
+    if (len(captures_next_move) > 0):
+        result = 1
+    
+    # check if the opponent can win in the next move 
+    if (close_to_win(self.opp, self.colour)[2] == 1):
+        result = 1
+
+
+    # check if the coordinate is featured on the ideal path to win 
+    in_ideal_path = 0
+    for coordinate in ideal_route_to_win[0]: 
+        if (coord == coordinate):
+            in_ideal_path = 1
+    # if it is not, then render this board state a "stable" evaluation
+    if (in_ideal_path == 0):
+        result = 1
+
+
+    return result 
 
 
 
@@ -51,6 +76,11 @@ def evaluation(self):
 def close_to_win(self, colour):
 
     min_steps = inf
+    ideal_path = []
+    remaining_steps = []
+    # return the ideal path, remaining steps, and number of these steps
+    return_item = []  
+
     if (colour == "red"):
         for i in range(self.n): 
             # selects a starting position in first line
@@ -64,10 +94,12 @@ def close_to_win(self, colour):
                     path = aStar(start, end, self.n, self.board, self.colour)
                     # check that there is a path
                     if (path != 0):
-                        path = path_without_player(self.board, path, self.colour)
+                        path_without_red = path_without_player(self.board, path, self.colour)
                         # update the minimum number of steps needed to get to win
-                        if (len(path) < min_steps):
-                            min_steps = len(path)
+                        if (len(path_without_red) < min_steps):
+                            min_steps = len(path_without_red)
+                            ideal_path = path
+                            remaining_steps = path_without_red
 
     else: # this is a blue player
         for i in range(self.n): 
@@ -78,12 +110,17 @@ def close_to_win(self, colour):
                     end = (j, self.n - 1) 
                     path = aStar(start, end, self.n, self.board, self.colour)
                     if (path != 0):
-                        path = path_without_player(self.board, path, self.colour)
-                        if (len(path) < min_steps):
-                            min_steps = len(path)
+                        path_without_blue = path_without_player(self.board, path, self.colour)
+                        if (len(path_without_blue) < min_steps):
+                            min_steps = len(path_without_blue)
+                            ideal_path = path
+                            remaining_steps = path_without_red
 
+    return_item.append(ideal_path)
+    return_item.append(remaining_steps)
+    return_item.append(min_steps)
 
-    return min_steps
+    return return_item
 
 
 # Returns a list of hexes in a given path, which does not contain player

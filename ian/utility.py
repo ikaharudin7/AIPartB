@@ -1,6 +1,7 @@
 # Evaluation function, takes the board at a given time before a move and evaluates how good that board is. 
 from collections import defaultdict
 from math import inf
+from tkinter.messagebox import YES
 
 STEP_SIZE = 1
 
@@ -42,6 +43,63 @@ def evaluation(self):
 
     return curr_team - opp_team
 
+# For a given player, check if a branch of the current hex reaches the other side of the board
+# Return 1 if it has arrived on the other side, 0 if the last hex on the branch is not
+def reach_other_side(board, size, player, curr, blocked):
+    if (player == "red"):
+        if (curr[0] == size - 1): # current hex is at the other side
+            return 1
+        neighbours = generate_branch(curr, size, blocked)
+        for coord in neighbours:
+            if (reach_other_side(board, size, player, coord, blocked) == 1):
+                return 1
+        return 0
+            
+    else:
+        if (curr[1] == size - 1): # current hex is at the other side
+            return 1
+        neighbours = generate_branch(curr, size, blocked)
+        for coord in neighbours:
+            if (reach_other_side(board, size, player, coord, blocked) == 1):
+                return 1
+        return 0
+
+
+# Returns the string of the player which has already won, or if no player has yet won, "none"
+def which_player_won(board, size):
+    # check whether the red player has won
+    red_reach_other_side = 0
+    for q in range(size):
+        if (player_in_coord(board, (0, q), "red")):
+            # The opponent is the blocked hexes
+            blocked = []
+            for hex in board:
+                if (hex[2] != "red"):
+                    blocked.append((hex[0], hex[1]))
+            # check if a branch of this hex reaches the other side of the board
+            if (reach_other_side(board, size, "red", (0, q), blocked) == 1):
+                red_reach_other_side = 1
+
+    # check whether the red player has won
+    blue_reach_other_side = 0
+    for r in range(size):
+        if (player_in_coord(board, (r, 0), "blue")):
+            # The opponent is the blocked hexes
+            blocked = []
+            for hex in board:
+                if (hex[2] != "blue"):
+                    blocked.append((hex[0], hex[1]))
+            # check if a branch of this hex reaches the other side of the board
+            if (reach_other_side(board, size, "blue", (0, q), blocked) == 1):
+                blue_reach_other_side = 1
+
+    
+    if (red_reach_other_side):
+        return "red wins"
+    elif (blue_reach_other_side): 
+        return "blue wins"
+    else:
+        return "none"
 
 
 # Returns 1 if the board state passes the cut-off test

@@ -64,12 +64,7 @@ class Player:
         # Returns the state of the best move. 
         beta = math.inf
         alpha = -math.inf
-        #eval_and_state = ian.max_val(self.n, self.colour, self.board, alpha, beta, [], [], 0)
-        eval_and_state = ian.minimax(self.n, self.board, self.colour, 1, alpha, beta, 0)
-        print(eval_and_state)
-        best_eval = eval_and_state[0]
-        best_state = eval_and_state[1]
-        print("evaluation ", best_eval, "best state", best_state)
+        best_state = ian.minimax(self.n, self.board, self.colour, 1, alpha, beta, 0)[1]
         
         # Get a list of this players' coordinates in the 'best' state chosen
         player_in_best_state = []
@@ -85,7 +80,6 @@ class Player:
             else: 
                 coordinate = hex
 
-        print("newly placed coordinate ", coordinate)
         
         return ("PLACE", coordinate[0], coordinate[1])
 
@@ -118,7 +112,6 @@ class Player:
                 
 
             self.board.append((action[1], action[2], player))
-            print("updated board", self.board)
 
         # If steal has occurred. 
         else:

@@ -13,8 +13,8 @@ def minimax(size, state, player_colour, maximising_player, alpha, beta, depth):
     else:
         opponent = "red"
 
-    # check if game is over
-    if depth >= 3:
+    # check depth
+    if depth >= 2:
         eval = evaluation(player_colour, state, size)
         return (eval, state)
     
@@ -24,30 +24,26 @@ def minimax(size, state, player_colour, maximising_player, alpha, beta, depth):
         # go through each child of current state
         successors = successor(state, size, player_colour)
         for s in successors[0]: 
-            item = minimax(size, s, opponent, 0, alpha, beta, depth+1)
-            print("maximising", item)
-            eval = item[0]
+            eval = minimax(size, s, opponent, 0, alpha, beta, depth+1)[0]
             maxEval = max(maxEval, eval) 
             maxState = s # might be error here with order
             alpha = max(alpha, eval)
             if beta <= alpha:
                 break
-            return (maxEval, maxState)
+        return (maxEval, maxState)
 
     else:
         minEval = math.inf
         minState = [] # might be error here
         successors = successor(state, size, player_colour)
         for s in successors[0]: 
-            item = minimax(size, s, opponent, 1, alpha, beta, depth+1)
-            print("minimising", item)
-            eval = item[0]
+            eval = minimax(size, s, opponent, 1, alpha, beta, depth+1)[0]
             minEval = min(minEval, eval)
             minState = s
             beta = min(beta, eval)
             if beta <= alpha:
                 break
-            return (minEval, minState)
+        return (minEval, minState)
 
 
 
@@ -69,10 +65,8 @@ def successor(board, size, colour):
                 coord = (i, j, colour)
                 # Use the capture function when adding in 
                 disposable = capture(current, coord)
-                #print("captured ", disposable)
                 # Add coord to current board
                 current.append(coord)
-                #print("successor state ", current)
                 # Remove captured elements
                 if len(disposable) > 0:
                     for item in disposable:
@@ -99,7 +93,6 @@ def max_val(size, player, state, alpha, beta, alpha_state, beta_state, depth):
     successors = successor(state, size, player)
     for s in successors[0]: 
         item = min_val(size, opponent, s, alpha, beta, alpha_state, beta_state, depth + 1)
-        #print("successor eval", item[0], "alpha", alpha)
         if alpha < item[0]:
             alpha_state = s
         alpha = max(alpha, item[0])
@@ -120,7 +113,6 @@ def min_val(size, player, state, alpha, beta, alpha_state, beta_state, depth):
 
     if depth >=3:
         eval_value = evaluation(player, state, size)
-        #print("deepest", eval_value)
         return (eval_value, state)
     
     successors = successor(state, size, player)

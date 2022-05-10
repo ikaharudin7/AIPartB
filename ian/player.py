@@ -4,6 +4,7 @@ from collections import defaultdict
 from numpy import ceil
 from referee.board import Board
 import ian.utility as ian
+import math
 
 STEP_SIZE = 1
 
@@ -42,12 +43,12 @@ class Player:
         Called at the beginning of your turn. Based on the current state
         of the game, select an action to play.
         """
-        steps = ian.close_to_win(self, self.colour)[2]
-        print("min steps is", steps)
+        steps = ian.close_to_win(self.colour, self.board, self.n)[2]
+        print("min steps to win: ", steps)
 
         # put your code here
         self.moves += 1
-
+    
         # First move option
         if self.moves == 1 and self.colour == "red":
             if self.n % 2 == 0:
@@ -58,7 +59,29 @@ class Player:
         elif self.moves == 1 and self.colour == "blue":
             return ("STEAL", )
         
-        return ian.evalfunc(self.n, self.board, self.vertical, self.colour)
+        pos_infinity = math.inf
+        neg_infinity = -math.inf
+
+        # apply alpha-beta pruning to get the next 'best' move. 
+        # Returns the state of the best move. 
+        best_state = ian.max_val(self.n, self.colour, self.board, neg_infinity, pos_infinity, [], [], 0)[1]
+        # Get a list of this players' coordinates in the 'best' state chosen
+        player_in_best_state = []
+        for coord in best_state: 
+            if coord[2] == self.colour:
+                player_in_best_state.append(coord)
+
+        # Determine the newly placed coordinate based on current state and new state.
+        coordinate = ()
+        for hex in player_in_best_state:
+            if hex in self.board: 
+                continue
+            else: 
+                coordinate = hex
+
+        return ("PLACE", coordinate[0], coordinate[1])
+
+
          
 
     def turn(self, player, action):
@@ -74,16 +97,16 @@ class Player:
         """
         # put your code 
 
-        print(ian.evaluation(self))
+        #print(ian.evaluation(player, self.board, self.n))
 
         # Updates which elements are in the board at the moment. 
         if (len(action) > 2):
-            # Use apply_captures to update the board
-            remove = ian.capture(self, self.board, (action[1], action[2], player))
-            if len(remove) > 1:
+            # Use apply_captures to update the board...maybe not...conflicting with successor
+            #remove = ian.capture(self.board, (action[1], action[2], player))
+            #if len(remove) > 1:
                 
-                for item in remove:
-                    self.board.remove(item)
+                #for item in remove:
+                    #self.board.remove(item)
                 
 
             self.board.append((action[1], action[2], player))
@@ -93,8 +116,6 @@ class Player:
             temp = self.board[0] 
             self.board = [(temp[1], temp[0], player)]
 
-        print(self.board)
-        # Keep track of board in array form like part A, with occupied tuples there, with the colour. 
 
         return action
 

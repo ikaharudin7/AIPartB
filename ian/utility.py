@@ -5,6 +5,91 @@ from tkinter.messagebox import YES
 
 STEP_SIZE = 1
 
+
+# Gets the successor states from current state
+def successor(board, size, colour):
+    
+    states = []
+    new_coords = []
+
+    for i in range(size):
+        for j in range(size):
+
+            current = []
+            for coordinate in board:
+                current.append(coordinate)
+
+            if (i, j, "blue") not in board and (i, j, "red") not in board:
+                coord = (i, j, colour)
+                # Use the capture function when adding in 
+                disposable = capture(current, coord)
+                # Add coord to current board
+                current.append(coord)
+                print("successor state ", current)
+                # Remove captured elements
+                if len(disposable) > 0:
+                    for item in disposable:
+                        current.remove(item)
+                
+                states.append(current)
+                new_coords.append((i, j, colour))
+
+    return [states, new_coords]
+
+def max_val(size, player, state, alpha, beta, alpha_state, beta_state, depth):
+    
+    if player == "red":
+        opponent = "blue"
+    else:
+        opponent = "red"
+
+    if depth >=4:
+        eval_value = evaluation(player, state, size)
+        return (eval_value, state)
+
+    i = 0
+    successors = successor(state, size, player)
+    for s in successors[0]: 
+        item = min_val(size, opponent, s, alpha, beta, alpha_state, beta_state, depth + 1)
+        #print("evaluation for this state: ", item[0])
+        #print("this state: ", item[1])
+        if alpha < item[0]:
+            alpha = item[0]
+            alpha_state = s
+        if alpha >= beta:
+            return (beta, beta_state)
+        
+        i += 1
+    
+    return (alpha, alpha_state)
+
+
+def min_val(size, player, state, alpha, beta, alpha_state, beta_state, depth):
+    
+    if player == "red":
+        opponent = "blue"
+    else:
+        opponent = "red"
+
+    if depth >=4:
+        eval_value = evaluation(player, state, size)
+        return (eval_value, state)
+    
+    i = 0
+    successors = successor(state, size, player)
+    for s in successors[0]: 
+        item = max_val(size, opponent, s, alpha, beta, alpha_state, beta_state, depth + 1)
+        if beta > item[0]:
+            beta = item[0]
+            beta_state = s
+        if beta <= alpha: 
+            return (alpha, alpha_state)
+        
+        i += 1
+    
+    return (beta, beta_state)
+
+
 def evalfunc(n, board, vertical, colour):
 
     # OFFENCE - add values which fill up along the AStar path
@@ -34,12 +119,17 @@ def evalfunc(n, board, vertical, colour):
 
     # Find a different AStar Path/ Block
 
-def evaluation(self):
+def evaluation(player, state, size):
+    if player == "red":
+        opponent = "blue"
+    else:
+        opponent = "red"
+
     # Weightings for each type of board available. 
     winning_weight = 5
 
-    curr_team = close_to_win(self, self.colour)[2] * winning_weight
-    opp_team = close_to_win(self, self.opp)[2] * winning_weight
+    curr_team = close_to_win(player, state, size)[2] * winning_weight
+    opp_team = close_to_win(opponent, state, size)[2] * winning_weight
 
     return curr_team - opp_team
 
@@ -102,36 +192,9 @@ def which_player_won(board, size):
         return "none"
 
 
-# Returns 1 if the board state passes the cut-off test
-def cut_off_test(self, board, coord, ideal_route_to_win): 
-    result = 0
-
-    # check if the opponent can capture this piece in the next move
-    captures_next_move = capture(self, board, coord)
-    if (len(captures_next_move) > 0):
-        result = 1
-    
-    # check if the opponent can win in the next move 
-    if (close_to_win(self.opp, self.colour)[2] == 1):
-        result = 1
-
-
-    # check if the coordinate is featured on the ideal path to win 
-    in_ideal_path = 0
-    for coordinate in ideal_route_to_win[0]: 
-        if (coord == coordinate):
-            in_ideal_path = 1
-    # if it is not, then render this board state a "stable" evaluation
-    if (in_ideal_path == 0):
-        result = 1
-
-
-    return result 
-
-
 
 # Detects how close a player is to winning
-def close_to_win(self, colour):
+def close_to_win(player, board, size):
 
     min_steps = inf
     ideal_path = []
@@ -139,40 +202,40 @@ def close_to_win(self, colour):
     # return the ideal path, remaining steps, and number of these steps
     return_item = []  
 
-    if (colour == "red"):
-        for i in range(self.n): 
+    if (player == "red"):
+        for i in range(size): 
             # selects a starting position in first line
-            if (player_in_coord(self.board, (0, i), self.opp) != 1): 
+            if (player_in_coord(board, (0, i), "blue") != 1): 
                 start = (0, i)
-            # selects the end/goal position in final line
-            for j in range(self.n):
-                if (player_in_coord(self.board, (self.n - 1, j), self.opp) != 1):
-                    end = (self.n - 1, j) 
-                    # find the shortest path between the set points
-                    path = aStar(start, end, self.n, self.board, self.colour)
-                    # check that there is a path
-                    if (path != 0):
-                        path_without_red = path_without_player(self.board, path, self.colour)
-                        # update the minimum number of steps needed to get to win
-                        if (len(path_without_red) < min_steps):
-                            min_steps = len(path_without_red)
-                            ideal_path = path
-                            remaining_steps = path_without_red
+                # selects the end/goal position in final line
+                for j in range(size):
+                    if (player_in_coord(board, (size - 1, j), "blue") != 1):
+                        end = (size - 1, j) 
+                        # find the shortest path between the set points
+                        path = aStar(start, end, size, board, player)
+                        # check that there is a path
+                        if (path != 0):
+                            path_without_red = path_without_player(board, path, player)
+                            # update the minimum number of steps needed to get to win
+                            if (len(path_without_red) < min_steps):
+                                min_steps = len(path_without_red)
+                                ideal_path = path
+                                remaining_steps = path_without_red
 
     else: # this is a blue player
-        for i in range(self.n): 
-            if (player_in_coord(self.board, (i, 0), self.opp) != 1): 
+        for i in range(size): 
+            if (player_in_coord(board, (i, 0), "red") != 1): 
                 start = (i, 0)
-            for j in range(self.n):
-                if (player_in_coord(self.board, (j, self.n - 1), self.opp) != 1):
-                    end = (j, self.n - 1) 
-                    path = aStar(start, end, self.n, self.board, self.colour)
-                    if (path != 0):
-                        path_without_blue = path_without_player(self.board, path, self.colour)
-                        if (len(path_without_blue) < min_steps):
-                            min_steps = len(path_without_blue)
-                            ideal_path = path
-                            remaining_steps = path_without_red
+                for j in range(size):
+                    if (player_in_coord(board, (j, size - 1), "red") != 1):
+                        end = (j, size - 1) 
+                        path = aStar(start, end, size, board, player)
+                        if (path != 0):
+                            path_without_blue = path_without_player(board, path, player)
+                            if (len(path_without_blue) < min_steps):
+                                min_steps = len(path_without_blue)
+                                ideal_path = path
+                                remaining_steps = path_without_blue
 
     return_item.append(ideal_path)
     return_item.append(remaining_steps)
@@ -204,7 +267,7 @@ def player_in_coord(board, coord, player):
 
 
 # Detecting capture and returning captured elements - coord in (r, q, colour) format
-def capture(self, board, coord):
+def capture(board, coord):
     colour = coord[2]
     opp = "red"
     if colour == "red":
@@ -296,7 +359,7 @@ def aStar(start, goal, size, board, colour):
 
         # If the goal has been found and optimised, print out solution
         if curr == goal:
-            print(g_cost.get(goal))
+            #print(g_cost.get(goal))
             return get_history(descended_from, curr, start)
 
         open.remove(curr)

@@ -65,6 +65,7 @@ class Player:
         # apply alpha-beta pruning to get the next 'best' move. 
         # Returns the state of the best move. 
         best_state = ian.max_val(self.n, self.colour, self.board, neg_infinity, pos_infinity, [], [], 0)[1]
+        print("best state is ", best_state)
         # Get a list of this players' coordinates in the 'best' state chosen
         player_in_best_state = []
         for coord in best_state: 
@@ -79,6 +80,8 @@ class Player:
             else: 
                 coordinate = hex
 
+        print("newly placed coordinate ", coordinate)
+        
         return ("PLACE", coordinate[0], coordinate[1])
 
 
@@ -102,14 +105,15 @@ class Player:
         # Updates which elements are in the board at the moment. 
         if (len(action) > 2):
             # Use apply_captures to update the board...maybe not...conflicting with successor
-            #remove = ian.capture(self.board, (action[1], action[2], player))
-            #if len(remove) > 1:
+            remove = ian.capture(self.board, (action[1], action[2], player))
+            if len(remove) > 1:
                 
-                #for item in remove:
-                    #self.board.remove(item)
+                for item in remove:
+                    self.board.remove(item)
                 
 
             self.board.append((action[1], action[2], player))
+            print("updated board", self.board)
 
         # If steal has occurred. 
         else:

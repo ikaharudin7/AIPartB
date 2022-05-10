@@ -23,9 +23,10 @@ def successor(board, size, colour):
                 coord = (i, j, colour)
                 # Use the capture function when adding in 
                 disposable = capture(current, coord)
+                #print("captured ", disposable)
                 # Add coord to current board
                 current.append(coord)
-                print("successor state ", current)
+                #print("successor state ", current)
                 # Remove captured elements
                 if len(disposable) > 0:
                     for item in disposable:
@@ -43,7 +44,7 @@ def max_val(size, player, state, alpha, beta, alpha_state, beta_state, depth):
     else:
         opponent = "red"
 
-    if depth >=4:
+    if depth >=3:
         eval_value = evaluation(player, state, size)
         return (eval_value, state)
 
@@ -51,8 +52,6 @@ def max_val(size, player, state, alpha, beta, alpha_state, beta_state, depth):
     successors = successor(state, size, player)
     for s in successors[0]: 
         item = min_val(size, opponent, s, alpha, beta, alpha_state, beta_state, depth + 1)
-        #print("evaluation for this state: ", item[0])
-        #print("this state: ", item[1])
         if alpha < item[0]:
             alpha = item[0]
             alpha_state = s
@@ -61,6 +60,7 @@ def max_val(size, player, state, alpha, beta, alpha_state, beta_state, depth):
         
         i += 1
     
+    #print("does what it should")
     return (alpha, alpha_state)
 
 
@@ -71,7 +71,7 @@ def min_val(size, player, state, alpha, beta, alpha_state, beta_state, depth):
     else:
         opponent = "red"
 
-    if depth >=4:
+    if depth >=3:
         eval_value = evaluation(player, state, size)
         return (eval_value, state)
     
@@ -318,13 +318,23 @@ def capture(board, coord):
     if (r+1, q, colour) in board and (r, q+1, opp) in board and (r+1, q-1, opp) in board:
         captured.append((r, q+1, opp))
         captured.append((r+1, q-1, opp))
-    # print(colour, opp, coord[2])
-    # print(captured)
-    return captured
+    
+
+    return unique(captured)
 
 
 
-
+# Change an array such that it only has unique values
+def unique(list):
+ 
+    unique_list = []
+     
+    for x in list:
+        # check if exists in unique_list or not
+        if x not in unique_list:
+            unique_list.append(x)
+    
+    return unique_list
 
 
 

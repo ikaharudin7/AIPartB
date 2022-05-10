@@ -1,9 +1,55 @@
 # Evaluation function, takes the board at a given time before a move and evaluates how good that board is. 
 from collections import defaultdict
 from math import inf
+import math
 from tkinter.messagebox import YES
 
 STEP_SIZE = 1
+
+# Try this minimax function for pruning
+def minimax(size, state, player_colour, maximising_player, alpha, beta, depth):
+    if player_colour == "red":
+        opponent = "blue"
+    else:
+        opponent = "red"
+
+    # check if game is over
+    if depth >= 3:
+        eval = evaluation(player_colour, state, size)
+        return (eval, state)
+    
+    if (maximising_player):
+        maxEval = -math.inf
+        maxState = [] # might be error here
+        # go through each child of current state
+        successors = successor(state, size, player_colour)
+        for s in successors[0]: 
+            item = minimax(size, s, opponent, 0, alpha, beta, depth+1)
+            print("maximising", item)
+            eval = item[0]
+            maxEval = max(maxEval, eval) 
+            maxState = s # might be error here with order
+            alpha = max(alpha, eval)
+            if beta <= alpha:
+                break
+            return (maxEval, maxState)
+
+    else:
+        minEval = math.inf
+        minState = [] # might be error here
+        successors = successor(state, size, player_colour)
+        for s in successors[0]: 
+            item = minimax(size, s, opponent, 1, alpha, beta, depth+1)
+            print("minimising", item)
+            eval = item[0]
+            minEval = min(minEval, eval)
+            minState = s
+            beta = min(beta, eval)
+            if beta <= alpha:
+                break
+            return (minEval, minState)
+
+
 
 
 # Gets the successor states from current state
@@ -37,6 +83,8 @@ def successor(board, size, colour):
 
     return [states, new_coords]
 
+
+
 def max_val(size, player, state, alpha, beta, alpha_state, beta_state, depth):
     
     if player == "red":
@@ -48,19 +96,18 @@ def max_val(size, player, state, alpha, beta, alpha_state, beta_state, depth):
         eval_value = evaluation(player, state, size)
         return (eval_value, state)
 
-    i = 0
     successors = successor(state, size, player)
     for s in successors[0]: 
         item = min_val(size, opponent, s, alpha, beta, alpha_state, beta_state, depth + 1)
+        #print("successor eval", item[0], "alpha", alpha)
         if alpha < item[0]:
-            alpha = item[0]
             alpha_state = s
+        alpha = max(alpha, item[0])
+
         if alpha >= beta:
             return (beta, beta_state)
         
-        i += 1
     
-    #print("does what it should")
     return (alpha, alpha_state)
 
 
@@ -73,19 +120,19 @@ def min_val(size, player, state, alpha, beta, alpha_state, beta_state, depth):
 
     if depth >=3:
         eval_value = evaluation(player, state, size)
+        #print("deepest", eval_value)
         return (eval_value, state)
     
-    i = 0
     successors = successor(state, size, player)
     for s in successors[0]: 
         item = max_val(size, opponent, s, alpha, beta, alpha_state, beta_state, depth + 1)
         if beta > item[0]:
-            beta = item[0]
             beta_state = s
+        beta = min(beta, item[0])
+
         if beta <= alpha: 
             return (alpha, alpha_state)
         
-        i += 1
     
     return (beta, beta_state)
 

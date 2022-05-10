@@ -59,13 +59,18 @@ class Player:
         elif self.moves == 1 and self.colour == "blue":
             return ("STEAL", )
         
-        pos_infinity = math.inf
-        neg_infinity = -math.inf
 
         # apply alpha-beta pruning to get the next 'best' move. 
         # Returns the state of the best move. 
-        best_state = ian.max_val(self.n, self.colour, self.board, neg_infinity, pos_infinity, [], [], 0)[1]
-        print("best state is ", best_state)
+        beta = math.inf
+        alpha = -math.inf
+        #eval_and_state = ian.max_val(self.n, self.colour, self.board, alpha, beta, [], [], 0)
+        eval_and_state = ian.minimax(self.n, self.board, self.colour, 1, alpha, beta, 0)
+        print(eval_and_state)
+        best_eval = eval_and_state[0]
+        best_state = eval_and_state[1]
+        print("evaluation ", best_eval, "best state", best_state)
+        
         # Get a list of this players' coordinates in the 'best' state chosen
         player_in_best_state = []
         for coord in best_state: 

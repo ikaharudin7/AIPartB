@@ -79,98 +79,43 @@ def successor(board, size, colour):
 
 
 
-def max_val(size, player, state, alpha, beta, alpha_state, beta_state, depth):
-    
-    if player == "red":
-        opponent = "blue"
-    else:
-        opponent = "red"
-
-    if depth >=3:
-        eval_value = evaluation(player, state, size)
-        return (eval_value, state)
-
-    successors = successor(state, size, player)
-    for s in successors[0]: 
-        item = min_val(size, opponent, s, alpha, beta, alpha_state, beta_state, depth + 1)
-        if alpha < item[0]:
-            alpha_state = s
-        alpha = max(alpha, item[0])
-
-        if alpha >= beta:
-            return (beta, beta_state)
-        
-    
-    return (alpha, alpha_state)
-
-
-def min_val(size, player, state, alpha, beta, alpha_state, beta_state, depth):
-    
-    if player == "red":
-        opponent = "blue"
-    else:
-        opponent = "red"
-
-    if depth >=3:
-        eval_value = evaluation(player, state, size)
-        return (eval_value, state)
-    
-    successors = successor(state, size, player)
-    for s in successors[0]: 
-        item = max_val(size, opponent, s, alpha, beta, alpha_state, beta_state, depth + 1)
-        if beta > item[0]:
-            beta_state = s
-        beta = min(beta, item[0])
-
-        if beta <= alpha: 
-            return (alpha, alpha_state)
-        
-    
-    return (beta, beta_state)
-
-
-def evalfunc(n, board, vertical, colour):
-
-    # OFFENCE - add values which fill up along the AStar path
-    # (Give more value to a state which has 2 more hexes to go compared to 4 more to win)
-    # Use A-Star initially to go from start to end
-    middle = int(n / 2)
-    # Have a check if the end goals are taken or not
-
-    if vertical:
-        
-        choose = aStar((n - 1, middle), (0, middle), n, board, colour)
-
-    else:
-        choose = aStar((middle - 2, n - 1), (middle, 0), n, board, colour)
-
-
-    for tup in choose:
-        # Problem here as self.board has different format. 
-        if (tup[0], tup[1], "red") not in board and (tup[0], tup[1], "blue") not in board:
-            cs = tup
-            break
-    
-    # Replace 
-    return ("PLACE", cs[0], cs[1])
-
-    # DEFENCE - add greatest value to a block/capture if opp is 1 or 2 away from winning
-
-    # Find a different AStar Path/ Block
-
 def evaluation(player, state, size):
     if player == "red":
         opponent = "blue"
     else:
         opponent = "red"
 
-    # Weightings for each type of board available. 
+    # Weighting for each step which a player is from winning
     winning_weight = 5
-
     curr_team = close_to_win(player, state, size)[2] * winning_weight
     opp_team = close_to_win(opponent, state, size)[2] * winning_weight
+    step_difference = curr_team - opp_team
 
-    return curr_team - opp_team
+    # Weighting for the difference in number of pieces between player and opponent 
+    piece_weight = 3
+    pieces_list = playerOpponentPieces(state, player, opponent)
+    player_total = pieces_list[0]
+    opponent_total = pieces_list[1]
+    piece_difference = (player_total - opponent_total) * piece_weight
+
+    return step_difference + piece_difference
+
+
+# Returns the total number of pieces of a player and their opponent
+def playerOpponentPieces(board, player, opponent):
+    player_opp = [] # first item = num player pieces, second item = num opponent pieces
+    num_player = 0
+    num_opponent = 0
+    for hex in board:
+        if hex[2] == player:
+            num_player += 1
+        if hex [2] == opponent:
+            num_opponent += 1
+    player_opp.append(num_player)
+    player_opp.append(num_opponent)
+
+    return player_opp
+
 
 # For a given player, check if a branch of the current hex reaches the other side of the board
 # Return 1 if it has arrived on the other side, 0 if the last hex on the branch is not

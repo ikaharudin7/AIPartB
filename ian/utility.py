@@ -6,7 +6,7 @@ from tkinter.messagebox import YES
 
 STEP_SIZE = 1
 
-# Try this minimax function for pruning
+# Alpha Beta function for pruning: maximising_player = 1 or -1
 def minimax(size, state, player_colour, maximising_player, alpha, beta, depth):
     if player_colour == "red":
         opponent = "blue"
@@ -15,7 +15,7 @@ def minimax(size, state, player_colour, maximising_player, alpha, beta, depth):
 
     # check depth
     if depth >= 2:
-        eval = evaluation(player_colour, state, size)
+        eval = evaluation(player_colour, maximising_player, state, size)
         return (eval, state)
     
     if (maximising_player):
@@ -24,7 +24,7 @@ def minimax(size, state, player_colour, maximising_player, alpha, beta, depth):
         # go through each child of current state
         successors = successor(state, size, player_colour)
         for s in successors[0]: 
-            eval = minimax(size, s, opponent, 0, alpha, beta, depth+1)[0]
+            eval = minimax(size, s, opponent, -1, alpha, beta, depth+1)[0]
             maxEval = max(maxEval, eval) 
             maxState = s # might be error here with order
             alpha = max(alpha, eval)
@@ -78,8 +78,8 @@ def successor(board, size, colour):
     return [states, new_coords]
 
 
-
-def evaluation(player, state, size):
+# Return an evaluation of the given state of the board
+def evaluation(player, maximising_player, state, size):
     if player == "red":
         opponent = "blue"
     else:
@@ -89,32 +89,103 @@ def evaluation(player, state, size):
     winning_weight = 5
     curr_team = close_to_win(player, state, size)[2] * winning_weight
     opp_team = close_to_win(opponent, state, size)[2] * winning_weight
-    step_difference = curr_team - opp_team
+    step_difference = (curr_team - opp_team) * maximising_player
+
+    # Get more detailed information about current state
+    state_info = stateFeatures(state, size, player, opponent)
 
     # Weighting for the difference in number of pieces between player and opponent 
-    piece_weight = 3
-    pieces_list = playerOpponentPieces(state, player, opponent)
-    player_total = pieces_list[0]
-    opponent_total = pieces_list[1]
-    piece_difference = (player_total - opponent_total) * piece_weight
+    one_piece_weight = 3
+    player_total = state_info["player_total"]
+    opponent_total = state_info["opponent_total"]
+    piece_difference = (player_total - opponent_total) * one_piece_weight * maximising_player
 
-    return step_difference + piece_difference
+    # Set weight = 3 for the number of player's pieces near the centre of the board
+    centre_weight = 3
+    centre_pieces = state_info["centred_players"]
+    centre_val = centre_pieces * centre_weight
+
+    # Weighting for the number of opportunities to capture opponent 
+    capture_weight = 5
+    possible_captures = num_capture_positions(state, size, player, opponent)
+    capture_val = 0
+    if (possible_captures > 1): # if there is only 1, opponent may prevent capture in next move
+        capture_val = possible_captures * capture_weight * maximising_player
+
+    #print("steps", step_difference, "pieces", piece_difference, "centre", centre_val, "capture", capture_val)
+    return step_difference + piece_difference + centre_val + capture_val
 
 
-# Returns the total number of pieces of a player and their opponent
-def playerOpponentPieces(board, player, opponent):
-    player_opp = [] # first item = num player pieces, second item = num opponent pieces
+# Returns the number of coordinates on the board which player can capture
+def num_capture_positions(board, size, player, opponent):
+    num = 0
+    for r in range(size):
+        for q in range(size):
+            if (r, q, player) not in board and (r, q, opponent) not in board:
+                # check if this coordinate can capture
+                if len(capture(board, (r, q, player))) > 0:
+                    num += 1
+    
+    return num
+
+
+# Returns information about a given board state, including total pieces and centred pieces
+def stateFeatures(board, size, player, opponent):
+    board_info = defaultdict()
+    # these are the keys in this dictionary 
     num_player = 0
     num_opponent = 0
-    for hex in board:
-        if hex[2] == player:
-            num_player += 1
-        if hex [2] == opponent:
-            num_opponent += 1
-    player_opp.append(num_player)
-    player_opp.append(num_opponent)
+    maxPlayers_centre = 0
 
-    return player_opp
+    if (size % 2 == 0): # board size is even
+        # establish a centred region on the board, more than n hexes from the edge of board
+        if (size == 4 or size == 6):
+            n = 1
+        elif (size == 8 or size == 10):
+            n = 2
+        elif (size == 12 or size == 14):
+            n = 3
+
+        for hex in board:
+            # update the total number of player and opponent
+            if hex[2] == player:
+                num_player += 1
+            if hex[2] == opponent:
+                num_opponent += 1
+            
+            # update the total number of maximising players around centre of the board
+            if hex[0] < (size - n) and hex[0] >= n and hex[1] < (size - n) and hex[1] >= n:
+                maxPlayers_centre += 1
+            
+
+    else: 
+        # establish the radius of the hexagon region based on the centre of the board
+        if (size == 3 or size == 5):
+            radius = 1
+        elif (size == 7 or size == 9):
+            radius = 2
+        elif (size == 11 or size == 13):
+            radius = 3
+        elif (size == 15):
+            radius = 4
+        
+        centre = size // 2 
+        for hex in board:
+            if hex[2] == player:
+                num_player += 1
+            if hex [2] == opponent:
+                num_opponent += 1
+            
+            if (centre + radius) >= hex[0] and (centre - radius) <= hex[0] and (centre
+             + radius) >= hex[1] and (centre - radius) <= hex[1]: 
+                maxPlayers_centre += 1
+
+
+    board_info["player_total"] = num_player
+    board_info["opponent_total"] = num_opponent
+    board_info["centred_players"] = maxPlayers_centre
+
+    return board_info
 
 
 # For a given player, check if a branch of the current hex reaches the other side of the board

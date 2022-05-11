@@ -43,9 +43,7 @@ class Player:
         Called at the beginning of your turn. Based on the current state
         of the game, select an action to play.
         """
-        steps = ian.close_to_win(self.colour, self.board, self.n)[2]
-        print("min steps to win: ", steps)
-
+        
         # put your code here
         self.moves += 1
     

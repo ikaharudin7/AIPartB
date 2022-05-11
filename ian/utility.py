@@ -113,7 +113,7 @@ def evaluation(player, maximising_player, state, size):
     if possible_captures > 0:
         capture_val = possible_captures * capture_weight * maximising_player
 
-    print(piece_difference + centre_val + capture_val)
+   
     return piece_difference + centre_val + capture_val
 
 

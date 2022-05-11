@@ -20,28 +20,32 @@ def minimax(size, state, player_colour, maximising_player, alpha, beta, depth):
     
     if (maximising_player):
         maxEval = -math.inf
-        maxState = [] # might be error here
+        maxState = state # might be error here
         # go through each child of current state
         successors = successor(state, size, player_colour)
         for s in successors[0]: 
             eval = minimax(size, s, opponent, -1, alpha, beta, depth+1)[0]
+            if eval > maxEval: # update the maximum state 
+                maxState = s
             maxEval = max(maxEval, eval) 
-            maxState = s # might be error here with order
             alpha = max(alpha, eval)
             if beta <= alpha:
+                print("great")
                 break
         return (maxEval, maxState)
 
     else:
         minEval = math.inf
-        minState = [] # might be error here
+        minState = state # might be error here
         successors = successor(state, size, player_colour)
         for s in successors[0]: 
             eval = minimax(size, s, opponent, 1, alpha, beta, depth+1)[0]
+            if eval < minEval:
+                minState = s
             minEval = min(minEval, eval)
-            minState = s
             beta = min(beta, eval)
             if beta <= alpha:
+                print("nice")
                 break
         return (minEval, minState)
 
@@ -86,34 +90,35 @@ def evaluation(player, maximising_player, state, size):
         opponent = "red"
 
     # Weighting for each step which a player is from winning
-    winning_weight = 5
-    curr_team = close_to_win(player, state, size)[2] * winning_weight
-    opp_team = close_to_win(opponent, state, size)[2] * winning_weight
-    step_difference = (curr_team - opp_team) * maximising_player
+    #winning_weight = 6
+    #curr_team = close_to_win(player, state, size)[2] * winning_weight
+    #opp_team = close_to_win(opponent, state, size)[2] * winning_weight
+    #step_difference = (curr_team - opp_team) * maximising_player
 
     # Get more detailed information about current state
     state_info = stateFeatures(state, size, player, opponent)
 
     # Weighting for the difference in number of pieces between player and opponent 
-    one_piece_weight = 3
+    one_piece_weight = 4
     player_total = state_info["player_total"]
     opponent_total = state_info["opponent_total"]
     piece_difference = (player_total - opponent_total) * one_piece_weight * maximising_player
 
-    # Set weight = 3 for the number of player's pieces near the centre of the board
-    centre_weight = 3
+    # Set weight = 8 for the number of player's pieces near the centre of the board
+    centre_weight = 8
     centre_pieces = state_info["centred_players"]
-    centre_val = centre_pieces * centre_weight
+    #print(centre_pieces)
+    centre_val = centre_pieces * centre_weight * maximising_player * -1
 
     # Weighting for the number of opportunities to capture opponent 
-    capture_weight = 5
+    capture_weight = 10
     possible_captures = num_capture_positions(state, size, player, opponent)
     capture_val = 0
     if (possible_captures > 1): # if there is only 1, opponent may prevent capture in next move
         capture_val = possible_captures * capture_weight * maximising_player
 
-    #print("steps", step_difference, "pieces", piece_difference, "centre", centre_val, "capture", capture_val)
-    return step_difference + piece_difference + centre_val + capture_val
+
+    return piece_difference + centre_val + capture_val
 
 
 # Returns the number of coordinates on the board which player can capture

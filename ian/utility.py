@@ -2,7 +2,6 @@
 from collections import defaultdict
 from math import inf
 import math
-from tkinter.messagebox import YES
 
 STEP_SIZE = 1
 
@@ -18,7 +17,7 @@ def minimax(size, state, player_colour, maximising_player, alpha, beta, depth):
         eval = evaluation(player_colour, maximising_player, state, size)
         return (eval, state)
     
-    if (maximising_player):
+    if (maximising_player == 1):
         maxEval = -math.inf
         maxState = state # might be error here
         # go through each child of current state
@@ -30,7 +29,6 @@ def minimax(size, state, player_colour, maximising_player, alpha, beta, depth):
             maxEval = max(maxEval, eval) 
             alpha = max(alpha, eval)
             if beta <= alpha:
-                print("great")
                 break
         return (maxEval, maxState)
 
@@ -45,7 +43,6 @@ def minimax(size, state, player_colour, maximising_player, alpha, beta, depth):
             minEval = min(minEval, eval)
             beta = min(beta, eval)
             if beta <= alpha:
-                print("nice")
                 break
         return (minEval, minState)
 
@@ -106,18 +103,17 @@ def evaluation(player, maximising_player, state, size):
 
     # Set weight = 8 for the number of player's pieces near the centre of the board
     centre_weight = 8
-    centre_pieces = state_info["centred_players"]
-    #print(centre_pieces)
-    centre_val = centre_pieces * centre_weight * maximising_player * -1
+    centre_outside_diff = state_info["centred_players"] - state_info["outside_players"]
+    centre_val = centre_outside_diff * centre_weight * maximising_player
 
     # Weighting for the number of opportunities to capture opponent 
-    capture_weight = 10
+    capture_weight = 32
     possible_captures = num_capture_positions(state, size, player, opponent)
     capture_val = 0
-    if (possible_captures > 1): # if there is only 1, opponent may prevent capture in next move
+    if possible_captures > 0:
         capture_val = possible_captures * capture_weight * maximising_player
 
-
+    print(piece_difference + centre_val + capture_val)
     return piece_difference + centre_val + capture_val
 
 
@@ -141,6 +137,7 @@ def stateFeatures(board, size, player, opponent):
     num_player = 0
     num_opponent = 0
     maxPlayers_centre = 0
+    outside_centre = 0
 
     if (size % 2 == 0): # board size is even
         # establish a centred region on the board, more than n hexes from the edge of board
@@ -155,12 +152,13 @@ def stateFeatures(board, size, player, opponent):
             # update the total number of player and opponent
             if hex[2] == player:
                 num_player += 1
+                # update the total number of maximising players around centre of the board
+                if hex[0] < (size - n) and hex[0] >= n and hex[1] < (size - n) and hex[1] >= n:
+                    maxPlayers_centre += 1
+                else:
+                    outside_centre += 1
             if hex[2] == opponent:
                 num_opponent += 1
-            
-            # update the total number of maximising players around centre of the board
-            if hex[0] < (size - n) and hex[0] >= n and hex[1] < (size - n) and hex[1] >= n:
-                maxPlayers_centre += 1
             
 
     else: 
@@ -178,17 +176,20 @@ def stateFeatures(board, size, player, opponent):
         for hex in board:
             if hex[2] == player:
                 num_player += 1
+                if (centre + radius) >= hex[0] and (centre - radius) <= hex[0] and (centre
+                 + radius) >= hex[1] and (centre - radius) <= hex[1]: 
+                    maxPlayers_centre += 1
+                else:
+                    outside_centre += 1
             if hex [2] == opponent:
                 num_opponent += 1
-            
-            if (centre + radius) >= hex[0] and (centre - radius) <= hex[0] and (centre
-             + radius) >= hex[1] and (centre - radius) <= hex[1]: 
-                maxPlayers_centre += 1
+
 
 
     board_info["player_total"] = num_player
     board_info["opponent_total"] = num_opponent
     board_info["centred_players"] = maxPlayers_centre
+    board_info["outside_players"] = outside_centre
 
     return board_info
 
